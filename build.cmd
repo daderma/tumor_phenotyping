@@ -3,13 +3,36 @@ set DEPENDENCIES_ROOT=%cd%\dependencies
 call "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" amd64
 
 
-goto :prepare
+goto :zlib
 
 
 :prepare
 echo Preparing directories
 cd /d "%DEPENDENCIES_ROOT%"
 rmdir /s /q install
+
+
+:zlib
+cd /d "%DEPENDENCIES_ROOT%"
+robocopy /mir /nfl /ndl /mt zlib-1.2.8 zlib
+cd zlib
+cmake -G "Visual Studio 12 Win64" -DCMAKE_INSTALL_PREFIX=..\install\debug .
+cmake --build . --target install --config debug
+cd /d "%DEPENDENCIES_ROOT%"
+robocopy /mir /nfl /ndl /mt zlib-1.2.8 zlib
+cd zlib
+cmake -G "Visual Studio 12 Win64" -DCMAKE_INSTALL_PREFIX=..\install\release .
+cmake --build . --target install --config release
+
+
+:libpng
+cd /d "%DEPENDENCIES_ROOT%"
+robocopy /mir /nfl /ndl /mt libpng-1.6.20 libpng
+cd libpng
+cmake -G "Visual Studio 12 Win64" -DCMAKE_INSTALL_PREFIX=..\install\debug .
+cmake --build . --target install --config debug
+cmake -G "Visual Studio 12 Win64" -DCMAKE_INSTALL_PREFIX=..\install\release .
+cmake --build . --target install --config release
 
 
 :boost
