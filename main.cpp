@@ -57,15 +57,15 @@ void load(boost::filesystem::path const& directory, cells_type& cells)
 					BOOST_THROW_EXCEPTION(format_exception() << format_row(row));
 				}
 
-				cell_type cell;
-				cell.path = path; 
-				cell.id = boost::lexical_cast<std::int64_t>(columns[header[cell_id_field]]);
-				cell.x = boost::lexical_cast<std::int64_t>(columns[header[cell_x_field]]);
-				cell.y = boost::lexical_cast<std::int64_t>(columns[header[cell_y_field]]);
-				cell.phenotype = boost::trim_copy(columns[header[phenotype_field]]);
-				if(cell.phenotype.empty())
+				auto cell(std::make_shared<cell_type>());
+				cell->path = path; 
+				cell->id = boost::lexical_cast<std::int64_t>(columns[header[cell_id_field]]);
+				cell->x = boost::lexical_cast<std::int64_t>(columns[header[cell_x_field]]);
+				cell->y = boost::lexical_cast<std::int64_t>(columns[header[cell_y_field]]);
+				cell->phenotype = boost::trim_copy(columns[header[phenotype_field]]);
+				if(cell->phenotype.empty())
 				{
-					std::cout << "\tDiscarding cell id " << cell.id << " with unknown phenotype" << std::endl;
+					std::cout << "\tDiscarding cell id " << cell->id << " with unknown phenotype" << std::endl;
 				}
 				else
 				{
@@ -82,7 +82,7 @@ void generate(boost::filesystem::path const& directory, cells_type& cells)
 	std::set<std::string> phenotypes;
 	for(auto const& cell: cells)
 	{
-		phenotypes.insert(cell.phenotype);
+		phenotypes.insert(cell->phenotype);
 	}
 
 	for(auto const& phenotype: phenotypes)
@@ -101,32 +101,19 @@ void generate(boost::filesystem::path const& directory, cells_type& cells)
 		stream << std::endl;
 		for(auto const& cell: cells)
 		{
-			if(cell.phenotype != phenotype)
+			if(cell->phenotype != phenotype)
 			{
 				continue;
 			}
-			stream << cell.path << "\t" << cell.id << "\t" << cell.x << "\t" << cell.y;
+			stream << cell->path << "\t" << cell->id << "\t" << cell->x << "\t" << cell->y;
 			for(auto const& other_phenotype: phenotypes)
 			{
 				if(other_phenotype != phenotype)
 				{
 					double nearest_distance(std::numeric_limits<double>::max());
-					std::int64_t nearest_id;
-					for(auto const& other_cell: cells)
-					{
-						if(other_cell.phenotype == other_phenotype)
-						{
-							std::int64_t const x_distance(cell.x - other_cell.x);
-							std::int64_t const y_distance(cell.y - other_cell.y);
-							double const distance(std::sqrt((x_distance * x_distance) + (y_distance * y_distance)));
-							if(distance < nearest_distance)
-							{
-								nearest_distance = distance;
-								nearest_id = other_cell.id;
-							}
-						}
-					}
-					stream << "\t" << std::fixed << std::setprecision(0) << nearest_distance << "\t" << nearest_id;
+					cell_ptr_type nearest_cell;
+					nearest(cell, cells, other_phenotype, nearest_distance, nearest_cell);
+					stream << "\t" << std::fixed << std::setprecision(0) << nearest_distance << "\t" << nearest_cell->id;
 				}
 			}
 			stream << std::endl;
