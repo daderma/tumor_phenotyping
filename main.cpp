@@ -4,6 +4,7 @@
 #include <boost/filesystem/fstream.hpp>
 #include <boost/lexical_cast.hpp>
 #include <iostream>
+#include <map>
 #include <set>
 
 
@@ -13,7 +14,10 @@ typedef boost::error_info<struct row_, std::string> format_row;
 
 void load(boost::filesystem::path const& directory, cells_type& cells)
 {
-	std::size_t const expected_columns(126);
+	char const* cell_id_field("Cell ID");
+	char const* cell_x_field("Cell X Position");
+	char const* cell_y_field("Cell Y Position");
+	char const* phenotype_field("Phenotype");
 
 	boost::filesystem::directory_iterator end;
 	for(boost::filesystem::directory_iterator iter(directory); iter != end; ++ iter)
@@ -22,18 +26,23 @@ void load(boost::filesystem::path const& directory, cells_type& cells)
 		if(boost::iequals(path.extension().string(), ".txt"))
 		{
 			boost::filesystem::ifstream stream(path);
-			bool header(true);
+			std::map<std::string, std::size_t> header;
 			std::string row;
 			while(std::getline(stream, row))
 			{
 				std::vector<std::string> columns;
 				boost::split(columns, row, boost::is_any_of("\t"));
-				if(header)
+				if(header.empty())
 				{
-					if(columns.size() == expected_columns)
+					std::size_t index(0);
+					for(auto const& column: columns)
+					{
+						header.insert(std::make_pair(column, index ++));
+					}
+
+					if(header.count(cell_id_field) && header.count(cell_x_field) && header.count(cell_y_field) && header.count(phenotype_field))
 					{
 						std::cout << "Loading " << path << std::endl;
-						header = false;
 						continue;
 					}
 					else
@@ -43,17 +52,17 @@ void load(boost::filesystem::path const& directory, cells_type& cells)
 					}
 				}
 
-				if(columns.size() != expected_columns)
+				if(columns.size() != header.size())
 				{
 					BOOST_THROW_EXCEPTION(format_exception() << format_row(row));
 				}
 
 				cell_type cell;
 				cell.path = path; 
-				cell.id = boost::lexical_cast<std::int64_t>(columns[3]);
-				cell.x = boost::lexical_cast<std::int64_t>(columns[7]);
-				cell.y = boost::lexical_cast<std::int64_t>(columns[8]);
-				cell.phenotype = boost::trim_copy(columns[123]);
+				cell.id = boost::lexical_cast<std::int64_t>(columns[header[cell_id_field]]);
+				cell.x = boost::lexical_cast<std::int64_t>(columns[header[cell_x_field]]);
+				cell.y = boost::lexical_cast<std::int64_t>(columns[header[cell_y_field]]);
+				cell.phenotype = boost::trim_copy(columns[header[phenotype_field]]);
 				if(cell.phenotype.empty())
 				{
 					std::cout << "\tDiscarding cell id " << cell.id << " with unknown phenotype" << std::endl;
