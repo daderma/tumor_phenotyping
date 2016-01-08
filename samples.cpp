@@ -3,6 +3,7 @@
 #include <boost/filesystem/fstream.hpp>
 #include <boost/lexical_cast.hpp>
 #include <iostream>
+#include <set>
 
 
 void load_inform_samples(boost::filesystem::path const& directory, samples_type& samples)
@@ -117,5 +118,44 @@ void save_inform_distances(boost::filesystem::path const& directory, samples_typ
 				stream << std::endl;
 			}
 		}
+	}
+}
+
+
+void save_inform_phenotype_summary(boost::filesystem::path const& directory, samples_type const& samples)
+{
+	boost::filesystem::path path(directory / "summary_phenotype.txt");
+	std::cout << "Saving " << path << std::endl;
+	boost::filesystem::ofstream stream(path, std::ios::trunc);
+	
+	std::set<std::string> phenotypes;
+	for(auto const& sample: samples)
+	{
+		for(auto const& phenotype: sample.second)
+		{
+			phenotypes.insert(phenotype.first);
+		}
+	}
+
+	stream << "Sample Name";
+	for(auto const& phenotype: phenotypes)
+	{
+		stream << "\t" << phenotype << " Cells";
+	}
+	stream << std::endl;
+
+	for(auto const& sample: samples)
+	{
+		stream << sample.first;
+		for(auto const& phenotype: phenotypes)
+		{
+			std::size_t cells(0);
+			if(sample.second.count(phenotype))
+			{
+				cells = sample.second.at(phenotype).size();
+			}
+			stream << "\t" << cells;
+		}
+		stream << std::endl;
 	}
 }
