@@ -38,12 +38,15 @@ int main(int argc, char* argv[])
 		std::wstring directory(select_directory());
 		if(!directory.empty())
 		{
+			using namespace samples;
+
 			samples_type samples;
 			load_inform_samples(directory, samples);
-			save_inform_sample_distances(directory, samples);
-			save_inform_sample_composites(directory, samples);
+			save_inform_sample_nearest(directory, samples);
+			save_inform_sample_nearest_composites(directory, samples);
+			save_inform_sample_neighbor_composites(directory, samples);
+			save_inform_phenotype_nearest(directory, samples);
 			save_inform_phenotype_summary(directory, samples);
-			save_inform_phenotype_distances(directory, samples);
 		}
 		return 0;
 	}

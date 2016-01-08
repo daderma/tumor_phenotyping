@@ -6,7 +6,14 @@
 #include <map>
 
 
-typedef std::map<std::string, cells_type> phenotypes_type;
+namespace phenotypes
+{
+
+
+typedef std::map<std::string, cells::cells_type> phenotypes_type;
+
+
+}	// namespace phenotypes
 
 
 #endif	// TUMOR_PHENOTYPING__PHENOTYPES_HPP
