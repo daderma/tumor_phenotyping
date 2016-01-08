@@ -2,8 +2,12 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="samples.cpp" />
+    <ClCompile Include="cells.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cells.hpp" />
+    <ClInclude Include="phenotypes.hpp" />
+    <ClInclude Include="samples.hpp" />
   </ItemGroup>
 </Project>
