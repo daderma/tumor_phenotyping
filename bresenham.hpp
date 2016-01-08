@@ -5,8 +5,8 @@
 #include <boost/gil/gil_all.hpp>
 
 
-template<typename View>
-void putpixel(std::int64_t const& x, std::int64_t const& y, View& view)
+template<typename Pixel, typename View>
+void clip_pixel(std::int64_t const& x, std::int64_t const& y, Pixel const& pixel, View& view)
 {
 	if(x < 0 || y < 0)
 	{
@@ -14,15 +14,13 @@ void putpixel(std::int64_t const& x, std::int64_t const& y, View& view)
 	}
 	else if(x < view.width() && y < view.height())
 	{
-		view(x, y)[0] = 255;
-		view(x, y)[1] = 255;
-		view(x, y)[2] = 255;
+		view(x, y) = pixel;
 	}
 }
 
 
-template<typename View>
-void bresenham_line(std::int64_t const& x1, std::int64_t const& y1, std::int64_t const& x2, std::int64_t const& y2, View& view)
+template<typename Pixel, typename View>
+void bresenham_line(std::int64_t const& x1, std::int64_t const& y1, std::int64_t const& x2, std::int64_t const& y2, Pixel const& pixel, View& view)
 {
 	std::int64_t x, y, xe, ye;
 	std::int64_t dx(x2 - x1);
@@ -45,7 +43,7 @@ void bresenham_line(std::int64_t const& x1, std::int64_t const& y1, std::int64_t
 			y = y2;
 			xe = x1;
 		}
-		putpixel(x, y, view);
+		clip_pixel(x, y, pixel, view);
 
 		for(std::int64_t i(0); x < xe; ++ i)
 		{
@@ -66,7 +64,7 @@ void bresenham_line(std::int64_t const& x1, std::int64_t const& y1, std::int64_t
 				}
 				px = px + 2 * (dy1 - dx1);
 			}
-			putpixel(x, y, view);
+			clip_pixel(x, y, pixel, view);
 		}
 	}
 	else
@@ -83,7 +81,7 @@ void bresenham_line(std::int64_t const& x1, std::int64_t const& y1, std::int64_t
 			y = y2;
 			ye = y1;
 		}
-		putpixel(x, y, view);
+		clip_pixel(x, y, pixel, view);
 
 		for(std::int64_t i(0); y < ye; ++ i)
 		{
@@ -104,7 +102,7 @@ void bresenham_line(std::int64_t const& x1, std::int64_t const& y1, std::int64_t
 				}
 				py = py + 2 * (dx1 - dy1);
 			}
-			putpixel(x,y,view);
+			clip_pixel(x, y, pixel, view);
 		}
 	}
 }

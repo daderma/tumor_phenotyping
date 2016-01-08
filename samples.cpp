@@ -150,19 +150,21 @@ void save_inform_sample_composites(boost::filesystem::path const& directory, sam
 
 				boost::gil::rgb8_image_t image(original);
 				auto view(boost::gil::view(image));
+				auto const white(boost::gil::rgb8_pixel_t(255, 255, 255));
+				auto const red(boost::gil::rgb8_pixel_t(255, 0, 0));
 				for(auto const& cell: phenotype.second)
 				{
-					bresenham_line(cell->x, cell->y, cell->x + 3, cell->y, view);
-					bresenham_line(cell->x, cell->y, cell->x - 3, cell->y, view);
-					bresenham_line(cell->x, cell->y, cell->x, cell->y + 3, view);
-					bresenham_line(cell->x, cell->y, cell->x, cell->y - 3, view);
+					bresenham_line(cell->x, cell->y, cell->x + 3, cell->y, red, view);
+					bresenham_line(cell->x, cell->y, cell->x - 3, cell->y, red, view);
+					bresenham_line(cell->x, cell->y, cell->x, cell->y + 3, red, view);
+					bresenham_line(cell->x, cell->y, cell->x, cell->y - 3, red, view);
 
 					double nearest_distance(std::numeric_limits<double>::max());
 					cell_ptr_type nearest_cell;
 					nearest(cell, candidate_phenotype.second, nearest_distance, nearest_cell);
 					if(nearest_distance < std::max(view.height(), view.width()) * maximum_distance_percent)
 					{
-						bresenham_line(cell->x, cell->y, nearest_cell->x, nearest_cell->y, view);
+						bresenham_line(cell->x, cell->y, nearest_cell->x, nearest_cell->y, white, view);
 					}
 				}
 
