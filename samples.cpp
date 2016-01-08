@@ -74,7 +74,7 @@ void load_inform_samples(boost::filesystem::path const& directory, samples_type&
 }
 
 
-void save_inform_distances(boost::filesystem::path const& directory, samples_type const& samples)
+void save_inform_sample_distances(boost::filesystem::path const& directory, samples_type const& samples)
 {
 	for(auto const& sample: samples)
 	{
@@ -122,9 +122,81 @@ void save_inform_distances(boost::filesystem::path const& directory, samples_typ
 }
 
 
+void save_inform_phenotype_distances(boost::filesystem::path const& directory, samples_type const& samples)
+{
+	std::set<std::string> phenotypes;
+	for(auto const& sample: samples)
+	{
+		for(auto const& phenotype: sample.second)
+		{
+			phenotypes.insert(phenotype.first);
+		}
+	}
+
+	for(auto const& phenotype: phenotypes)
+	{
+		boost::filesystem::path path(directory / ("phenotype_distance_" + phenotype + ".txt"));
+		std::cout << "Saving " << path << std::endl;
+		boost::filesystem::ofstream stream(path, std::ios::trunc);
+
+		stream << "Sample Name\tCell ID\tCell X Position\tCell Y Position";
+		for(auto const& candidate_phenotype: phenotypes)
+		{
+			if(candidate_phenotype != phenotype)
+			{
+				stream 
+					<< "\t" << candidate_phenotype << " Min. Distance" 
+					<< "\t" << candidate_phenotype << " Nearest Cell ID";
+			}
+		}
+		stream << std::endl;
+
+		for(auto const& sample: samples)
+		{
+			if(sample.second.count(phenotype))
+			{
+				for(auto const& cell: sample.second.at(phenotype))
+				{
+					stream 
+						<< sample.first 
+						<< "\t" << cell->id 
+						<< "\t" << cell->x 
+						<< "\t" << cell->y;
+
+					for(auto const& candidate_phenotype: phenotypes)
+					{
+						if(candidate_phenotype != phenotype)
+						{
+							double nearest_distance(std::numeric_limits<double>::max());
+							cell_ptr_type nearest_cell;
+							if(sample.second.count(candidate_phenotype))
+							{
+								nearest(cell, sample.second.at(candidate_phenotype), nearest_distance, nearest_cell);
+							}
+
+							if(nearest_cell)
+							{
+								stream
+									<< "\t" << std::fixed << std::setprecision(0) << nearest_distance 
+									<< "\t" << nearest_cell->id;
+							}
+							else
+							{
+								stream << "\t" << "\t";
+							}
+						}
+					}
+					stream << std::endl;
+				}
+			}
+		}
+	}
+}
+
+
 void save_inform_phenotype_summary(boost::filesystem::path const& directory, samples_type const& samples)
 {
-	boost::filesystem::path path(directory / "summary_phenotype.txt");
+	boost::filesystem::path path(directory / "phenotype_summary.txt");
 	std::cout << "Saving " << path << std::endl;
 	boost::filesystem::ofstream stream(path, std::ios::trunc);
 	

@@ -10,8 +10,9 @@ int main(int argc, char* argv[])
 		auto const directory(boost::filesystem::current_path() / "samples");
 		samples_type samples;
 		load_inform_samples(directory, samples);
-		save_inform_distances(directory, samples);
+		save_inform_sample_distances(directory, samples);
 		save_inform_phenotype_summary(directory, samples);
+		save_inform_phenotype_distances(directory, samples);
 		return 0;
 	}
 

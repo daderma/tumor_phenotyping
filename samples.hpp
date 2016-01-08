@@ -16,7 +16,8 @@ typedef boost::error_info<struct load_detail_, std::string> load_detail_type;
 
 // File formats and naming consistent with inForm
 void load_inform_samples(boost::filesystem::path const& directory, samples_type& samples);
-void save_inform_distances(boost::filesystem::path const& directory, samples_type const& samples);
+void save_inform_sample_distances(boost::filesystem::path const& directory, samples_type const& samples);
+void save_inform_phenotype_distances(boost::filesystem::path const& directory, samples_type const& samples);
 void save_inform_phenotype_summary(boost::filesystem::path const& directory, samples_type const& samples);
 
 
