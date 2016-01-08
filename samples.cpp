@@ -132,39 +132,44 @@ void save_inform_sample_distances(boost::filesystem::path const& directory, samp
 
 void save_inform_sample_composites(boost::filesystem::path const& directory, samples_type const& samples)
 {
+	double const maximum_distance_percent(0.10);	// Maximum cell distance as percentage of max(width, height) of image
+
 	for(auto const& sample: samples)
 	{
+		boost::gil::rgb8_image_t original;
+		boost::gil::tiff_read_image((directory / create_filename(sample.first, "_composite_image.tif")).string(), original);
+
 		for(auto const& phenotype: sample.second)
 		{
-			boost::gil::rgb8_image_t original;
-			boost::gil::tiff_read_image((directory / create_filename(sample.first, "_composite_image.tif")).string(), original);
-			auto view(boost::gil::view(original));
-
-			for(auto const& cell: phenotype.second)
+			for(auto const& candidate_phenotype: sample.second)
 			{
-				bresenham_line(cell->x, cell->y, cell->x + 3, cell->y, view);
-				bresenham_line(cell->x, cell->y, cell->x - 3, cell->y, view);
-				bresenham_line(cell->x, cell->y, cell->x, cell->y + 3, view);
-				bresenham_line(cell->x, cell->y, cell->x, cell->y - 3, view);
-
-				for(auto const& candidate_phenotype: sample.second)
+				if(candidate_phenotype.first == phenotype.first)
 				{
-					if(candidate_phenotype.first != phenotype.first)
+					continue;
+				}
+
+				boost::gil::rgb8_image_t image(original);
+				auto view(boost::gil::view(image));
+				for(auto const& cell: phenotype.second)
+				{
+					bresenham_line(cell->x, cell->y, cell->x + 3, cell->y, view);
+					bresenham_line(cell->x, cell->y, cell->x - 3, cell->y, view);
+					bresenham_line(cell->x, cell->y, cell->x, cell->y + 3, view);
+					bresenham_line(cell->x, cell->y, cell->x, cell->y - 3, view);
+
+					double nearest_distance(std::numeric_limits<double>::max());
+					cell_ptr_type nearest_cell;
+					nearest(cell, candidate_phenotype.second, nearest_distance, nearest_cell);
+					if(nearest_distance < std::max(view.height(), view.width()) * maximum_distance_percent)
 					{
-						double nearest_distance(std::numeric_limits<double>::max());
-						cell_ptr_type nearest_cell;
-						nearest(cell, candidate_phenotype.second, nearest_distance, nearest_cell);
-						if(nearest_distance < 100)
-						{
-							bresenham_line(cell->x, cell->y, nearest_cell->x, nearest_cell->y, view);
-						}
+						bresenham_line(cell->x, cell->y, nearest_cell->x, nearest_cell->y, view);
 					}
 				}
-			}
 
-			boost::filesystem::path path(directory / create_filename(sample.first, "_distance_" + phenotype.first + ".tif"));
-			std::cout << "Saving " << path << std::endl;
-			boost::gil::tiff_write_view(path.string(), view);
+				boost::filesystem::path path(directory / create_filename(sample.first, "_distance_" + phenotype.first + "_" + candidate_phenotype.first + ".tif"));
+				std::cout << "Saving " << path << std::endl;
+				boost::gil::tiff_write_view(path.string(), view);
+			}
 		}
 	}
 }

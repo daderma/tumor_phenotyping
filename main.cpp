@@ -35,7 +35,7 @@ int main(int argc, char* argv[])
 	{
 		std::cout << "Select a folder containing inForm sample data." << std::endl;
 
-		std::wstring directory(/*select_directory()*/ L"samples\\progressing");
+		std::wstring directory(select_directory());
 		if(!directory.empty())
 		{
 			samples_type samples;
