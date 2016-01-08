@@ -1,6 +1,8 @@
 #include "samples.hpp"
+#include "bresenham.hpp"
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem/fstream.hpp>
+#include <boost/gil/extension/io/tiff_io.hpp>
 #include <boost/lexical_cast.hpp>
 #include <iostream>
 #include <set>
@@ -74,13 +76,19 @@ void load_inform_samples(boost::filesystem::path const& directory, samples_type&
 }
 
 
+std::string create_filename(std::string const& sample, std::string const& trailer)
+{
+	return boost::ireplace_last_copy(sample, ".im3", "") + trailer;
+}
+
+
 void save_inform_sample_distances(boost::filesystem::path const& directory, samples_type const& samples)
 {
 	for(auto const& sample: samples)
 	{
 		for(auto const& phenotype: sample.second)
 		{
-			boost::filesystem::path path(directory / (boost::ireplace_last_copy(sample.first, ".im3", "") + "_distance_" + phenotype.first + ".txt"));
+			boost::filesystem::path path(directory / create_filename(sample.first, "_distance_" + phenotype.first + ".txt"));
 			std::cout << "Saving " << path << std::endl;
 			boost::filesystem::ofstream stream(path, std::ios::trunc);
 
@@ -120,6 +128,47 @@ void save_inform_sample_distances(boost::filesystem::path const& directory, samp
 		}
 	}
 }
+
+
+void save_inform_sample_composites(boost::filesystem::path const& directory, samples_type const& samples)
+{
+	for(auto const& sample: samples)
+	{
+		for(auto const& phenotype: sample.second)
+		{
+			boost::gil::rgb8_image_t original;
+			boost::gil::tiff_read_image((directory / create_filename(sample.first, "_composite_image.tif")).string(), original);
+			auto view(boost::gil::view(original));
+
+			for(auto const& cell: phenotype.second)
+			{
+				bresenham_line(cell->x, cell->y, cell->x + 3, cell->y, view);
+				bresenham_line(cell->x, cell->y, cell->x - 3, cell->y, view);
+				bresenham_line(cell->x, cell->y, cell->x, cell->y + 3, view);
+				bresenham_line(cell->x, cell->y, cell->x, cell->y - 3, view);
+
+				for(auto const& candidate_phenotype: sample.second)
+				{
+					if(candidate_phenotype.first != phenotype.first)
+					{
+						double nearest_distance(std::numeric_limits<double>::max());
+						cell_ptr_type nearest_cell;
+						nearest(cell, candidate_phenotype.second, nearest_distance, nearest_cell);
+						if(nearest_distance < 100)
+						{
+							bresenham_line(cell->x, cell->y, nearest_cell->x, nearest_cell->y, view);
+						}
+					}
+				}
+			}
+
+			boost::filesystem::path path(directory / create_filename(sample.first, "_distance_" + phenotype.first + ".tif"));
+			std::cout << "Saving " << path << std::endl;
+			boost::gil::tiff_write_view(path.string(), view);
+		}
+	}
+}
+
 
 
 void save_inform_phenotype_distances(boost::filesystem::path const& directory, samples_type const& samples)

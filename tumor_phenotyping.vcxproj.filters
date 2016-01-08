@@ -9,5 +9,6 @@
     <ClInclude Include="cells.hpp" />
     <ClInclude Include="phenotypes.hpp" />
     <ClInclude Include="samples.hpp" />
+    <ClInclude Include="bresenham.hpp" />
   </ItemGroup>
 </Project>

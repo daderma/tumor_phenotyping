@@ -35,12 +35,13 @@ int main(int argc, char* argv[])
 	{
 		std::cout << "Select a folder containing inForm sample data." << std::endl;
 
-		std::wstring directory(select_directory());
+		std::wstring directory(/*select_directory()*/ L"samples\\progressing");
 		if(!directory.empty())
 		{
 			samples_type samples;
 			load_inform_samples(directory, samples);
 			save_inform_sample_distances(directory, samples);
+			save_inform_sample_composites(directory, samples);
 			save_inform_phenotype_summary(directory, samples);
 			save_inform_phenotype_distances(directory, samples);
 		}

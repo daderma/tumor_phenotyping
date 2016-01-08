@@ -3,7 +3,7 @@ set DEPENDENCIES_ROOT=%cd%\dependencies
 call "C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" amd64
 
 
-goto :zlib
+goto :tiff
 
 
 :prepare
@@ -25,15 +25,16 @@ cmake -G "Visual Studio 12 Win64" -DCMAKE_INSTALL_PREFIX=..\install\release .
 cmake --build . --target install --config release
 
 
-:libpng
+:tiff
 cd /d "%DEPENDENCIES_ROOT%"
-robocopy /mir /nfl /ndl /mt libpng-1.6.20 libpng
-cd libpng
-cmake -G "Visual Studio 12 Win64" -DCMAKE_INSTALL_PREFIX=..\install\debug .
+robocopy /mir /nfl /ndl /mt tiff-4.0.6 tiff
+cd tiff
+cmake -G "Visual Studio 12 Win64" -DCMAKE_INSTALL_PREFIX=..\install\debug -DBUILD_SHARED_LIBS=OFF .
 cmake --build . --target install --config debug
-cmake -G "Visual Studio 12 Win64" -DCMAKE_INSTALL_PREFIX=..\install\release .
+cmake -G "Visual Studio 12 Win64" -DCMAKE_INSTALL_PREFIX=..\install\release -DBUILD_SHARED_LIBS=OFF .
 cmake --build . --target install --config release
 
+pause
 
 :boost
 cd /d "%DEPENDENCIES_ROOT%"
