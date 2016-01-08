@@ -141,10 +141,10 @@ auto const green(boost::gil::rgb8_pixel_t(0, 255, 0));
 template<typename Pixel, typename View>
 void mark(cells::cell_ptr_type const& cell, Pixel const& pixel, View& view)
 {
-	bresenham_line(cell->x, cell->y, cell->x + 3, cell->y, pixel, view);
-	bresenham_line(cell->x, cell->y, cell->x - 3, cell->y, pixel, view);
-	bresenham_line(cell->x, cell->y, cell->x, cell->y + 3, pixel, view);
-	bresenham_line(cell->x, cell->y, cell->x, cell->y - 3, pixel, view);
+	bresenham_line(cell->x, cell->y, cell->x + 3, cell->y + 3, pixel, view);
+	bresenham_line(cell->x, cell->y, cell->x + 3, cell->y - 3, pixel, view);
+	bresenham_line(cell->x, cell->y, cell->x - 3, cell->y + 3, pixel, view);
+	bresenham_line(cell->x, cell->y, cell->x - 3, cell->y - 3, pixel, view);
 }
 
 
@@ -229,7 +229,11 @@ void save_inform_sample_neighbor_composites(boost::filesystem::path const& direc
 						if(candidate_distance < distance_threshold_pixels)
 						{
 							double const intensity((distance_threshold_pixels - candidate_distance) / distance_threshold_pixels);
-							auto const gradient(boost::gil::rgb8_pixel_t(127 + (128 * intensity), 127 + (128 * intensity), 127 + (128 * intensity)));
+							auto const gradient(boost::gil::rgb8_pixel_t(
+								127 + static_cast<boost::gil::bits8>(128 * intensity), 
+								127 + static_cast<boost::gil::bits8>(128 * intensity), 
+								127 + static_cast<boost::gil::bits8>(128 * intensity)
+								));
 							bresenham_line(cell->x, cell->y, candidate_cell->x, candidate_cell->y, gradient, view);
 						}
 					}
