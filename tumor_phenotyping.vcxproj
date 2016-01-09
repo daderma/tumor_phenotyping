@@ -92,12 +92,14 @@
     <ClCompile Include="cells.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="samples.cpp" />
+    <ClCompile Include="windows.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bresenham.hpp" />
     <ClInclude Include="cells.hpp" />
     <ClInclude Include="phenotypes.hpp" />
     <ClInclude Include="samples.hpp" />
+    <ClInclude Include="windows.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -4,11 +4,13 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="samples.cpp" />
     <ClCompile Include="cells.cpp" />
+    <ClCompile Include="windows.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cells.hpp" />
     <ClInclude Include="phenotypes.hpp" />
     <ClInclude Include="samples.hpp" />
     <ClInclude Include="bresenham.hpp" />
+    <ClInclude Include="windows.hpp" />
   </ItemGroup>
 </Project>
