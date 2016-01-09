@@ -1,8 +1,11 @@
 #include "samples.hpp"
 #include "bresenham.hpp"
 #include <boost/algorithm/string.hpp>
+#include <boost/accumulators/accumulators.hpp>
+#include <boost/accumulators/statistics.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/gil/extension/io/tiff_io.hpp>
+#include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
 #include <iostream>
 #include <set>
@@ -123,7 +126,7 @@ void save_inform_sample_nearest(boost::filesystem::path const& directory, sample
 						cells::cell_ptr_type nearest_cell;
 						nearest(cell, candidate_phenotype.second, nearest_distance, nearest_cell);
 						stream
-							<< "\t" << std::fixed << std::setprecision(0) << nearest_distance 
+							<< "\t" << boost::io::group(std::fixed, std::setprecision(0), nearest_distance)
 							<< "\t" << nearest_cell->id;
 					}
 				}
@@ -257,7 +260,6 @@ void save_inform_sample_neighbor_composites(boost::filesystem::path const& direc
 }
 
 
-
 void save_inform_phenotype_nearest(boost::filesystem::path const& directory, samples_type const& samples)
 {
 	std::set<std::string> phenotypes;
@@ -350,6 +352,18 @@ void save_inform_phenotype_summary(boost::filesystem::path const& directory, sam
 	{
 		stream << "\t" << phenotype << " Cells";
 	}
+	for(auto const& phenotype: phenotypes)
+	{
+		for(auto const& candidate_phenotype: phenotypes)
+		{
+			if(candidate_phenotype != phenotype)
+			{
+				stream << "\t" << phenotype << "/" << candidate_phenotype << " Nearest Mean";
+				stream << "\t" << phenotype << "/" << candidate_phenotype << " Nearest Median";
+				stream << "\t" << phenotype << "/" << candidate_phenotype << " Nearest Std. Dev.";
+			}
+		}
+	}
 	stream << std::endl;
 
 	for(auto const& sample: samples)
@@ -364,6 +378,41 @@ void save_inform_phenotype_summary(boost::filesystem::path const& directory, sam
 			}
 			stream << "\t" << cells;
 		}
+
+		for(auto const& phenotype: phenotypes)
+		{
+			for(auto const& candidate_phenotype: phenotypes)
+			{
+				if(candidate_phenotype != phenotype)
+				{
+					if(sample.second.count(phenotype) && sample.second.count(candidate_phenotype))
+					{
+						boost::accumulators::accumulator_set<
+							double, 
+							boost::accumulators::stats<
+								boost::accumulators::tag::median,
+								boost::accumulators::tag::lazy_variance							
+							>
+						> accumulator;
+						for(auto const& cell: sample.second.at(phenotype))
+						{
+							double nearest_distance(std::numeric_limits<double>::max());
+							cells::cell_ptr_type nearest_cell;
+							nearest(cell, sample.second.at(candidate_phenotype), nearest_distance, nearest_cell);
+							accumulator(nearest_distance);
+						}
+						stream << "\t" << boost::io::group(std::fixed, std::setprecision(2), boost::accumulators::mean(accumulator));
+						stream << "\t" << boost::io::group(std::fixed, std::setprecision(2), boost::accumulators::median(accumulator));
+						stream << "\t" << boost::io::group(std::fixed, std::setprecision(2), std::sqrt(boost::accumulators::variance(accumulator)));
+					}
+					else
+					{
+						stream << "\t" << "\t" << "\t";
+					}
+				}
+			}
+		}
+
 		stream << std::endl;
 	}
 }
