@@ -144,10 +144,8 @@ auto const green(boost::gil::rgb8_pixel_t(0, 255, 0));
 template<typename Pixel, typename View>
 void mark(cells::cell_ptr_type const& cell, Pixel const& pixel, View& view)
 {
-	bresenham_line(cell->x, cell->y, cell->x + 3, cell->y + 3, pixel, view);
-	bresenham_line(cell->x, cell->y, cell->x + 3, cell->y - 3, pixel, view);
-	bresenham_line(cell->x, cell->y, cell->x - 3, cell->y + 3, pixel, view);
-	bresenham_line(cell->x, cell->y, cell->x - 3, cell->y - 3, pixel, view);
+	bresenham_line(cell->x - 3, cell->y - 3, cell->x + 3, cell->y + 3, pixel, view);
+	bresenham_line(cell->x - 3, cell->y + 3, cell->x + 3, cell->y - 3, pixel, view);
 }
 
 
