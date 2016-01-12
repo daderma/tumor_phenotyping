@@ -22,26 +22,66 @@ void clip_pixel(std::int64_t const& x, std::int64_t const& y, Pixel const& pixel
 template<typename Pixel, typename View>
 void bresenham_line(std::int64_t const& x1, std::int64_t const& y1, std::int64_t const& x2, std::int64_t const& y2, Pixel const& pixel, View& view)
 {
+	// Adapted from http://www.etechplanet.com/codesnippets/computer-graphics-draw-a-line-using-bresenham-algorithm.aspx
+
+	std::int64_t const dx(x2 - x1);
+	std::int64_t const dy(y2 - y1);
+	std::int64_t const adx(std::abs(dx));
+	std::int64_t const ady(std::abs(dy));
+	std::int64_t px(2 * ady - adx);
+	std::int64_t py(2 * adx - ady);
 	std::int64_t x, y, xe, ye;
-	std::int64_t dx(x2 - x1);
-	std::int64_t dy(y2 - y1);
-	std::int64_t dx1(std::abs(dx));
-	std::int64_t dy1(std::abs(dy));
-	std::int64_t px(2 * dy1 - dx1);
-	std::int64_t py(2 * dx1-dy1);
-	if(dy1 <= dx1)
+	if(adx < ady)
 	{
-		if(dx >= 0)
+		if(dy < 0)
+		{
+			x = x2;
+			y = y2;
+			ye = y1;
+		}
+		else
 		{
 			x = x1;
 			y = y1;
-			xe = x2;
+			ye = y2;
 		}
-		else
+		clip_pixel(x, y, pixel, view);
+
+		for(std::int64_t i(0); y < ye; ++ i)
+		{
+			y = y + 1;
+			if(py > 0)
+			{
+				if((dx < 0 && dy < 0) || (dx > 0 && dy > 0))
+				{
+					x = x + 1;
+				}
+				else
+				{
+					x = x - 1;
+				}
+				py = py + 2 * (adx - ady);
+			}
+			else
+			{
+				py = py + 2 * adx;
+			}
+			clip_pixel(x, y, pixel, view);
+		}
+	}
+	else
+	{
+		if(dx < 0)
 		{
 			x = x2;
 			y = y2;
 			xe = x1;
+		}
+		else
+		{
+			x = x1;
+			y = y1;
+			xe = x2;
 		}
 		clip_pixel(x, y, pixel, view);
 
@@ -50,7 +90,7 @@ void bresenham_line(std::int64_t const& x1, std::int64_t const& y1, std::int64_t
 			x = x + 1;
 			if(px < 0)
 			{
-				px = px + 2 * dy1;
+				px = px + 2 * ady;
 			}
 			else
 			{
@@ -62,45 +102,7 @@ void bresenham_line(std::int64_t const& x1, std::int64_t const& y1, std::int64_t
 				{
 					y = y - 1;
 				}
-				px = px + 2 * (dy1 - dx1);
-			}
-			clip_pixel(x, y, pixel, view);
-		}
-	}
-	else
-	{
-		if(dy >= 0)
-		{
-			x = x1;
-			y = y1;
-			ye = y2;
-		}
-		else
-		{
-			x = x2;
-			y = y2;
-			ye = y1;
-		}
-		clip_pixel(x, y, pixel, view);
-
-		for(std::int64_t i(0); y < ye; ++ i)
-		{
-			y = y + 1;
-			if(py <= 0)
-			{
-				py = py + 2 * dx1;
-			}
-			else
-			{
-				if((dx < 0 && dy < 0) || (dx > 0 && dy > 0))
-				{
-					x = x + 1;
-				}
-				else
-				{
-					x = x - 1;
-				}
-				py = py + 2 * (dx1 - dy1);
+				px = px + 2 * (ady - adx);
 			}
 			clip_pixel(x, y, pixel, view);
 		}
