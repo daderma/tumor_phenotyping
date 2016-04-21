@@ -7,7 +7,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tumor_phenotyping", "tumor_
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "root", "root", "{7306050F-DD9A-4587-96DE-4FC3C1883758}"
 	ProjectSection(SolutionItems) = preProject
-		build.cmd = build.cmd
+		build-dependencies.cmd = build-dependencies.cmd
 	EndProjectSection
 EndProject
 Global
