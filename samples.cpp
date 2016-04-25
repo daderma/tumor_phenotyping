@@ -15,6 +15,9 @@ namespace samples
 {
 
 
+double const distance_threshold_percentage(0.15);	// Maximum cell distance as percentage of min(width, height) of image
+
+
 void load_inform_samples(boost::filesystem::path const& directory, samples_type& samples)
 {
 	char const* sample_name("Sample Name");
@@ -151,8 +154,6 @@ void mark(cells::cell_ptr_type const& cell, Pixel const& pixel, View& view)
 
 void save_inform_sample_nearest_composites(boost::filesystem::path const& directory, samples_type const& samples)
 {
-	double const distance_threshold_percentage(0.07);	// Maximum cell distance as percentage of min(width, height) of image
-
 	for(auto const& sample: samples)
 	{
 		boost::gil::rgb8_image_t original;
@@ -202,8 +203,6 @@ void save_inform_sample_nearest_composites(boost::filesystem::path const& direct
 
 void save_inform_sample_neighbor_composites(boost::filesystem::path const& directory, samples_type const& samples)
 {
-	double const distance_threshold_percentage(0.07);	// Maximum cell distance as percentage of min(width, height) of image
-
 	for(auto const& sample: samples)
 	{
 		boost::gil::rgb8_image_t original;
