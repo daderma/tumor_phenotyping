@@ -66,8 +66,8 @@ void load_inform_samples(boost::filesystem::path const& directory, samples_type&
 					BOOST_THROW_EXCEPTION(load_exception() << load_detail_type(row));
 				}
 
-				std::string const sample(columns[header[sample_name]]);
-				std::string const phenotype(columns[header[phenotype_field]]);
+				auto const sample(columns[header[sample_name]]);
+				auto const phenotype(columns[header[phenotype_field]]);
 				auto const cell(std::make_shared<cells::cell_type>());
 				cell->id = boost::lexical_cast<std::int64_t>(columns[header[cell_id_field]]);
 				cell->x = boost::lexical_cast<std::int64_t>(columns[header[cell_x_field]]);
@@ -98,9 +98,9 @@ void save_inform_sample_nearest(boost::filesystem::path const& directory, sample
 	{
 		for(auto const& phenotype: sample.second)
 		{
-			boost::filesystem::path const path(directory / create_filename(sample.first, "_nearest_" + phenotype.first + ".txt"));
-			std::cout << "Saving " << path << std::endl;
-			boost::filesystem::ofstream stream(path, std::ios::trunc);
+			auto const destination(directory / create_filename(sample.first, "_nearest_" + phenotype.first + ".txt"));
+			std::cout << "Saving " << destination << std::endl;
+			boost::filesystem::ofstream stream(destination, std::ios::trunc);
 
 			stream << "Sample Name\tCell ID\tCell X Position\tCell Y Position";
 			for(auto const& candidate_phenotype: sample.second)
@@ -156,8 +156,14 @@ void save_inform_sample_nearest_composites(boost::filesystem::path const& direct
 {
 	for(auto const& sample: samples)
 	{
+		auto const source((directory / create_filename(sample.first, "_composite_image.tif")));
+		if(!boost::filesystem::is_regular_file(source))
+		{
+			std::cout << "Skipping missing " << source << std::endl;
+			continue;
+		}
 		boost::gil::rgb8_image_t original;
-		boost::gil::tiff_read_image((directory / create_filename(sample.first, "_composite_image.tif")).string(), original);
+		boost::gil::tiff_read_image(source.string(), original);
 		double const distance_threshold_pixels(std::min(original.height(), original.width()) * distance_threshold_percentage);
 
 		for(auto const& phenotype: sample.second)
@@ -192,9 +198,9 @@ void save_inform_sample_nearest_composites(boost::filesystem::path const& direct
 					}
 				}
 
-				boost::filesystem::path const path(directory / create_filename(sample.first, "_nearest_" + phenotype.first + "_" + candidate_phenotype.first + ".tif"));
-				std::cout << "Saving " << path << std::endl;
-				boost::gil::tiff_write_view(path.string(), view);
+				auto const destination(directory / create_filename(sample.first, "_nearest_" + phenotype.first + "_" + candidate_phenotype.first + ".tif"));
+				std::cout << "Saving " << destination << std::endl;
+				boost::gil::tiff_write_view(destination.string(), view);
 			}
 		}
 	}
@@ -205,8 +211,14 @@ void save_inform_sample_neighbor_composites(boost::filesystem::path const& direc
 {
 	for(auto const& sample: samples)
 	{
+		auto const source(directory / create_filename(sample.first, "_composite_image.tif"));
+		if(!boost::filesystem::is_regular_file(source))
+		{
+			std::cout << "Skipping missing " << source << std::endl;
+			continue;
+		}
 		boost::gil::rgb8_image_t original;
-		boost::gil::tiff_read_image((directory / create_filename(sample.first, "_composite_image.tif")).string(), original);
+		boost::gil::tiff_read_image(source.string(), original);
 		double const distance_threshold_pixels(std::min(original.height(), original.width()) * distance_threshold_percentage);
 
 		for(auto const& phenotype: sample.second)
@@ -247,9 +259,9 @@ void save_inform_sample_neighbor_composites(boost::filesystem::path const& direc
 					}
 				}
 
-				boost::filesystem::path const path(directory / create_filename(sample.first, "_neighbor_" + phenotype.first + "_" + candidate_phenotype.first + ".tif"));
-				std::cout << "Saving " << path << std::endl;
-				boost::gil::tiff_write_view(path.string(), view);
+				auto const destination(directory / create_filename(sample.first, "_neighbor_" + phenotype.first + "_" + candidate_phenotype.first + ".tif"));
+				std::cout << "Saving " << destination << std::endl;
+				boost::gil::tiff_write_view(destination.string(), view);
 			}
 		}
 	}
@@ -269,9 +281,9 @@ void save_inform_phenotype_nearest(boost::filesystem::path const& directory, sam
 
 	for(auto const& phenotype: phenotypes)
 	{
-		boost::filesystem::path const path(directory / ("phenotype_nearest_" + phenotype + ".txt"));
-		std::cout << "Saving " << path << std::endl;
-		boost::filesystem::ofstream stream(path, std::ios::trunc);
+		auto const destination(directory / ("phenotype_nearest_" + phenotype + ".txt"));
+		std::cout << "Saving " << destination << std::endl;
+		boost::filesystem::ofstream stream(destination, std::ios::trunc);
 
 		stream << "Sample Name\tCell ID\tCell X Position\tCell Y Position";
 		for(auto const& candidate_phenotype: phenotypes)
@@ -330,9 +342,9 @@ void save_inform_phenotype_nearest(boost::filesystem::path const& directory, sam
 
 void save_inform_phenotype_summary(boost::filesystem::path const& directory, samples_type const& samples)
 {
-	boost::filesystem::path const path(directory / "phenotype_summary.txt");
-	std::cout << "Saving " << path << std::endl;
-	boost::filesystem::ofstream stream(path, std::ios::trunc);
+	auto const destination(directory / "phenotype_summary.txt");
+	std::cout << "Saving " << destination << std::endl;
+	boost::filesystem::ofstream stream(destination, std::ios::trunc);
 	
 	std::set<std::string> phenotypes;
 	for(auto const& sample: samples)
