@@ -2,6 +2,39 @@
 #include "windows.hpp"
 #include <boost/exception/diagnostic_information.hpp> 
 #include <iostream>
+#include <set>
+
+
+void select_phenotype_of_interest(samples::categories_type const& categories, std::string& phenotype)
+{
+	std::set<std::string> phenotypes;
+	for(auto const& category: categories)
+	{
+		for(auto const& sample: category.second)
+		{
+			for(auto const& phenotype: sample.second)
+			{
+				phenotypes.insert(phenotype.first);
+			}
+		}
+	}
+
+	while(true)
+	{
+		std::cout << "Please select your phenotype of interest: " << std::endl;
+		for(auto const& phenotype: phenotypes)
+		{
+			std::cout << phenotype << std::endl;
+		}
+		std::cout << "> ";
+		std::getline(std::cin, phenotype);
+		if(phenotypes.count(phenotype))
+		{
+			std::cout << std::endl;
+			return;
+		}
+	}
+}
 
 
 void try_directory(boost::filesystem::path const& directory)
@@ -10,9 +43,9 @@ void try_directory(boost::filesystem::path const& directory)
 	{
 		using namespace samples;
 	
-		samples_type samples;
-		load_inform_samples(directory, samples);
-		if(samples.empty())
+		categories_type categories;
+		load_inform_samples(directory, categories);
+		if(categories.empty())
 		{
 			boost::filesystem::directory_iterator end;
 			for(boost::filesystem::directory_iterator iter(directory); iter != end; ++ iter)
@@ -22,11 +55,17 @@ void try_directory(boost::filesystem::path const& directory)
 		}
 		else
 		{
-			save_inform_sample_nearest(directory, samples);
-			save_inform_sample_nearest_composites(directory, samples);
-			save_inform_sample_neighbor_composites(directory, samples);
-			save_inform_phenotype_nearest(directory, samples);
-			save_inform_phenotype_summary(directory, samples);
+			std::string interest;
+			select_phenotype_of_interest(categories, interest);
+			for(auto const& category: categories)
+			{
+				boost::filesystem::create_directories(directory / category.first);
+				save_inform_sample_nearest(directory, category, interest);
+				save_inform_sample_nearest_composites(directory, category, interest);
+				save_inform_sample_neighbor_composites(directory, category, interest);
+				save_inform_phenotype_nearest(directory, category, interest);
+			}
+			save_inform_phenotype_summary(directory, categories, interest);
 		}
 	}
 	else

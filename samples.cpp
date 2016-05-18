@@ -18,9 +18,10 @@ namespace samples
 double const distance_threshold_percentage(0.15);	// Maximum cell distance as percentage of min(width, height) of image
 
 
-void load_inform_samples(boost::filesystem::path const& directory, samples_type& samples)
+void load_inform_samples(boost::filesystem::path const& directory, categories_type& categories)
 {
-	char const* sample_name("Sample Name");
+	char const* sample_field("Sample Name");
+	char const* category_field("Tissue Category");
 	char const* phenotype_field("Phenotype");
 	char const* cell_id_field("Cell ID");
 	char const* cell_x_field("Cell X Position");
@@ -47,9 +48,11 @@ void load_inform_samples(boost::filesystem::path const& directory, samples_type&
 						header.insert(std::make_pair(column, index ++));
 					}
 
-					if(header.count(sample_name) && header.count(cell_id_field) 
-						&& header.count(cell_x_field) && header.count(cell_y_field) 
-						&& header.count(phenotype_field))
+					if(header.count(sample_field) 
+						&& header.count(category_field) && header.count(phenotype_field)
+						&& header.count(cell_id_field) 
+						&& header.count(cell_x_field) && header.count(cell_y_field)
+						)
 					{
 						std::cout << "Loading " << path << std::endl;
 						continue;
@@ -66,19 +69,16 @@ void load_inform_samples(boost::filesystem::path const& directory, samples_type&
 					BOOST_THROW_EXCEPTION(load_exception() << load_detail_type(row));
 				}
 
-				auto const sample(columns[header[sample_name]]);
+				auto const sample(columns[header[sample_field]]);
+				auto const category(columns[header[category_field]]);
 				auto const phenotype(columns[header[phenotype_field]]);
 				auto const cell(std::make_shared<cells::cell_type>());
 				cell->id = boost::lexical_cast<std::int64_t>(columns[header[cell_id_field]]);
 				cell->x = boost::lexical_cast<std::int64_t>(columns[header[cell_x_field]]);
 				cell->y = boost::lexical_cast<std::int64_t>(columns[header[cell_y_field]]);
-				if(phenotype.empty())
+				if(!phenotype.empty())
 				{
-					std::cout << "\tDiscarding cell id " << cell->id << " with empty phenotype" << std::endl;
-				}
-				else
-				{
-					samples[sample][phenotype].push_back(cell);
+					categories[category][sample][phenotype].push_back(cell);
 				}
 			}
 		}
@@ -92,13 +92,18 @@ std::string create_filename(std::string const& sample, std::string const& traile
 }
 
 
-void save_inform_sample_nearest(boost::filesystem::path const& directory, samples_type const& samples)
+void save_inform_sample_nearest(boost::filesystem::path const& directory, categories_type::value_type const& category, std::string const& interest)
 {
-	for(auto const& sample: samples)
+	for(auto const& sample: category.second)
 	{
 		for(auto const& phenotype: sample.second)
 		{
-			auto const destination(directory / create_filename(sample.first, "_nearest_" + phenotype.first + ".txt"));
+			if(phenotype.first != interest)
+			{
+				continue;
+			}
+
+			auto const destination(directory / category.first / create_filename(sample.first, "_nearest_" + phenotype.first + ".txt"));
 			std::cout << "Saving " << destination << std::endl;
 			boost::filesystem::ofstream stream(destination, std::ios::trunc);
 
@@ -152,9 +157,9 @@ void mark(cells::cell_ptr_type const& cell, Pixel const& pixel, View& view)
 }
 
 
-void save_inform_sample_nearest_composites(boost::filesystem::path const& directory, samples_type const& samples)
+void save_inform_sample_nearest_composites(boost::filesystem::path const& directory, categories_type::value_type const& category, std::string const& interest)
 {
-	for(auto const& sample: samples)
+	for(auto const& sample: category.second)
 	{
 		auto const source((directory / create_filename(sample.first, "_composite_image.tif")));
 		if(!boost::filesystem::is_regular_file(source))
@@ -168,6 +173,11 @@ void save_inform_sample_nearest_composites(boost::filesystem::path const& direct
 
 		for(auto const& phenotype: sample.second)
 		{
+			if(phenotype.first != interest)
+			{
+				continue;
+			}
+
 			for(auto const& candidate_phenotype: sample.second)
 			{
 				if(candidate_phenotype.first == phenotype.first)
@@ -198,7 +208,7 @@ void save_inform_sample_nearest_composites(boost::filesystem::path const& direct
 					}
 				}
 
-				auto const destination(directory / create_filename(sample.first, "_nearest_" + phenotype.first + "_" + candidate_phenotype.first + ".tif"));
+				auto const destination(directory / category.first / create_filename(sample.first, "_nearest_" + phenotype.first + "_" + candidate_phenotype.first + ".tif"));
 				std::cout << "Saving " << destination << std::endl;
 				boost::gil::tiff_write_view(destination.string(), view);
 			}
@@ -207,9 +217,9 @@ void save_inform_sample_nearest_composites(boost::filesystem::path const& direct
 }
 
 
-void save_inform_sample_neighbor_composites(boost::filesystem::path const& directory, samples_type const& samples)
+void save_inform_sample_neighbor_composites(boost::filesystem::path const& directory, categories_type::value_type const& category, std::string const& interest)
 {
-	for(auto const& sample: samples)
+	for(auto const& sample: category.second)
 	{
 		auto const source(directory / create_filename(sample.first, "_composite_image.tif"));
 		if(!boost::filesystem::is_regular_file(source))
@@ -223,6 +233,11 @@ void save_inform_sample_neighbor_composites(boost::filesystem::path const& direc
 
 		for(auto const& phenotype: sample.second)
 		{
+			if(phenotype.first != interest)
+			{
+				continue;
+			}
+
 			for(auto const& candidate_phenotype: sample.second)
 			{
 				if(candidate_phenotype.first == phenotype.first)
@@ -259,7 +274,7 @@ void save_inform_sample_neighbor_composites(boost::filesystem::path const& direc
 					}
 				}
 
-				auto const destination(directory / create_filename(sample.first, "_neighbor_" + phenotype.first + "_" + candidate_phenotype.first + ".tif"));
+				auto const destination(directory / category.first / create_filename(sample.first, "_neighbor_" + phenotype.first + "_" + candidate_phenotype.first + ".tif"));
 				std::cout << "Saving " << destination << std::endl;
 				boost::gil::tiff_write_view(destination.string(), view);
 			}
@@ -268,10 +283,10 @@ void save_inform_sample_neighbor_composites(boost::filesystem::path const& direc
 }
 
 
-void save_inform_phenotype_nearest(boost::filesystem::path const& directory, samples_type const& samples)
+void save_inform_phenotype_nearest(boost::filesystem::path const& directory, categories_type::value_type const& category, std::string const& interest)
 {
 	std::set<std::string> phenotypes;
-	for(auto const& sample: samples)
+	for(auto const& sample: category.second)
 	{
 		for(auto const& phenotype: sample.second)
 		{
@@ -281,7 +296,12 @@ void save_inform_phenotype_nearest(boost::filesystem::path const& directory, sam
 
 	for(auto const& phenotype: phenotypes)
 	{
-		auto const destination(directory / ("phenotype_nearest_" + phenotype + ".txt"));
+		if(phenotype != interest)
+		{
+			continue;
+		}
+
+		auto const destination(directory / category.first / ("phenotype_nearest_" + phenotype + ".txt"));
 		std::cout << "Saving " << destination << std::endl;
 		boost::filesystem::ofstream stream(destination, std::ios::trunc);
 
@@ -297,7 +317,7 @@ void save_inform_phenotype_nearest(boost::filesystem::path const& directory, sam
 		}
 		stream << std::endl;
 
-		for(auto const& sample: samples)
+		for(auto const& sample: category.second)
 		{
 			if(sample.second.count(phenotype))
 			{
@@ -340,28 +360,36 @@ void save_inform_phenotype_nearest(boost::filesystem::path const& directory, sam
 }
 
 
-void save_inform_phenotype_summary(boost::filesystem::path const& directory, samples_type const& samples)
+void save_inform_phenotype_summary(boost::filesystem::path const& directory, categories_type const& categories, std::string const& interest)
 {
 	auto const destination(directory / "phenotype_summary.txt");
 	std::cout << "Saving " << destination << std::endl;
 	boost::filesystem::ofstream stream(destination, std::ios::trunc);
 	
 	std::set<std::string> phenotypes;
-	for(auto const& sample: samples)
+	for(auto const& category: categories)
 	{
-		for(auto const& phenotype: sample.second)
+		for(auto const& sample: category.second)
 		{
-			phenotypes.insert(phenotype.first);
+			for(auto const& phenotype: sample.second)
+			{
+				phenotypes.insert(phenotype.first);
+			}
 		}
 	}
 
-	stream << "Sample Name";
+	stream << "Sample Name\tTissue Category";
 	for(auto const& phenotype: phenotypes)
 	{
 		stream << "\t" << phenotype << " Cells";
 	}
 	for(auto const& phenotype: phenotypes)
 	{
+		if(phenotype != interest)
+		{
+			continue;
+		}
+
 		for(auto const& candidate_phenotype: phenotypes)
 		{
 			if(candidate_phenotype != phenotype)
@@ -374,54 +402,62 @@ void save_inform_phenotype_summary(boost::filesystem::path const& directory, sam
 	}
 	stream << std::endl;
 
-	for(auto const& sample: samples)
+	for(auto const& category: categories)
 	{
-		stream << sample.first;
-		for(auto const& phenotype: phenotypes)
+		for(auto const& sample: category.second)
 		{
-			std::size_t cells(0);
-			if(sample.second.count(phenotype))
+			stream << sample.first << "\t" << category.first;
+			for(auto const& phenotype: phenotypes)
 			{
-				cells = sample.second.at(phenotype).size();
-			}
-			stream << "\t" << cells;
-		}
-
-		for(auto const& phenotype: phenotypes)
-		{
-			for(auto const& candidate_phenotype: phenotypes)
-			{
-				if(candidate_phenotype != phenotype)
+				std::size_t cells(0);
+				if(sample.second.count(phenotype))
 				{
-					if(sample.second.count(phenotype) && sample.second.count(candidate_phenotype))
+					cells = sample.second.at(phenotype).size();
+				}
+				stream << "\t" << cells;
+			}
+
+			for(auto const& phenotype: phenotypes)
+			{
+				if(phenotype != interest)
+				{
+					continue;
+				}
+
+				for(auto const& candidate_phenotype: phenotypes)
+				{
+					if(candidate_phenotype != phenotype)
 					{
-						boost::accumulators::accumulator_set<
-							double, 
-							boost::accumulators::stats<
-								boost::accumulators::tag::median,
-								boost::accumulators::tag::lazy_variance							
-							>
-						> accumulator;
-						for(auto const& cell: sample.second.at(phenotype))
+						if(sample.second.count(phenotype) && sample.second.count(candidate_phenotype))
 						{
-							double nearest_distance(std::numeric_limits<double>::max());
-							cells::cell_ptr_type nearest_cell;
-							nearest(cell, sample.second.at(candidate_phenotype), nearest_distance, nearest_cell);
-							accumulator(nearest_distance);
+							boost::accumulators::accumulator_set<
+								double, 
+								boost::accumulators::stats<
+									boost::accumulators::tag::median,
+									boost::accumulators::tag::lazy_variance							
+								>
+							> accumulator;
+							for(auto const& cell: sample.second.at(phenotype))
+							{
+								double nearest_distance(std::numeric_limits<double>::max());
+								cells::cell_ptr_type nearest_cell;
+								nearest(cell, sample.second.at(candidate_phenotype), nearest_distance, nearest_cell);
+								accumulator(nearest_distance);
+							}
+							stream << "\t" << boost::io::group(std::fixed, std::setprecision(2), boost::accumulators::mean(accumulator));
+							stream << "\t" << boost::io::group(std::fixed, std::setprecision(2), boost::accumulators::median(accumulator));
+							stream << "\t" << boost::io::group(std::fixed, std::setprecision(2), std::sqrt(boost::accumulators::variance(accumulator)));
 						}
-						stream << "\t" << boost::io::group(std::fixed, std::setprecision(2), boost::accumulators::mean(accumulator));
-						stream << "\t" << boost::io::group(std::fixed, std::setprecision(2), boost::accumulators::median(accumulator));
-						stream << "\t" << boost::io::group(std::fixed, std::setprecision(2), std::sqrt(boost::accumulators::variance(accumulator)));
-					}
-					else
-					{
-						stream << "\t" << "\t" << "\t";
+						else
+						{
+							stream << "\t" << "\t" << "\t";
+						}
 					}
 				}
 			}
-		}
 
-		stream << std::endl;
+			stream << std::endl;
+		}
 	}
 }
 
