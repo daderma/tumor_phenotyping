@@ -2,9 +2,9 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="samples.cpp" />
     <ClCompile Include="cells.cpp" />
     <ClCompile Include="windows.cpp" />
+    <ClCompile Include="inform.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cells.hpp" />
@@ -12,5 +12,7 @@
     <ClInclude Include="samples.hpp" />
     <ClInclude Include="bresenham.hpp" />
     <ClInclude Include="windows.hpp" />
+    <ClInclude Include="categories.hpp" />
+    <ClInclude Include="inform.hpp" />
   </ItemGroup>
 </Project>

@@ -1,18 +1,18 @@
-#include "samples.hpp"
+#include "inform.hpp"
 #include "windows.hpp"
 #include <boost/exception/diagnostic_information.hpp> 
 #include <iostream>
 #include <set>
 
 
-void select_phenotype_of_interest(samples::categories_type const& categories, std::string& phenotype)
+void select_phenotype_of_interest(categories_type const& categories, std::string& phenotype)
 {
 	std::set<std::string> phenotypes;
 	for(auto const& category: categories)
 	{
 		for(auto const& sample: category.second)
 		{
-			for(auto const& phenotype: sample.second)
+			for(auto const& phenotype: sample.second.phenotypes)
 			{
 				phenotypes.insert(phenotype.first);
 			}
@@ -41,8 +41,6 @@ void try_directory(boost::filesystem::path const& directory)
 {
 	if(boost::filesystem::is_directory(directory))
 	{
-		using namespace samples;
-	
 		categories_type categories;
 		load_inform_samples(directory, categories);
 		if(categories.empty())

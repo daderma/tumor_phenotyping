@@ -1,10 +1,6 @@
 #include "cells.hpp"
 
 
-namespace cells
-{
-
-
 double distance(cell_ptr_type const& cell, cell_ptr_type const& candidate)
 {
 	std::int64_t const x_distance(cell->x - candidate->x);
@@ -17,7 +13,7 @@ void nearest(cell_ptr_type const& cell, cells_type const& candidates, double& ne
 {
 	for(auto const& candidate: candidates)
 	{
-		double const candidate_distance(cells::distance(cell, candidate));
+		double const candidate_distance(distance(cell, candidate));
 		if(candidate_distance < nearest_distance)
 		{
 			nearest_distance = candidate_distance;
@@ -25,6 +21,3 @@ void nearest(cell_ptr_type const& cell, cells_type const& candidates, double& ne
 		}
 	}
 }
-
-
-}	// namespace cells

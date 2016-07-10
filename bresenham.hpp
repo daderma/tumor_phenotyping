@@ -1,5 +1,4 @@
-#ifndef TUMOR_PHENOTYPING__BRESENHAM_HPP
-#define TUMOR_PHENOTYPING__BRESENHAM_HPP
+#pragma once
 
 
 #include <boost/gil/gil_all.hpp>
@@ -108,6 +107,3 @@ void bresenham_line(std::int64_t const& x1, std::int64_t const& y1, std::int64_t
 		}
 	}
 }
-
-
-#endif // TUMOR_PHENOTYPING__BRESENHAM_HPP
