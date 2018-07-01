@@ -22,12 +22,12 @@ void load_inform_samples(boost::filesystem::path const& directory, categories_ty
 		auto const path(iter->path());
 		if(boost::iends_with(path.string(), "_cell_seg_data.txt"))
 		{
-			char const* sample_field("Sample Name");
-			char const* category_field("Tissue Category");
-			char const* phenotype_field("Phenotype");
-			char const* cell_id_field("Cell ID");
-			char const* cell_x_field("Cell X Position");
-			char const* cell_y_field("Cell Y Position");
+			auto const sample_field("Sample Name");
+			auto const category_field("Tissue Category");
+			auto const phenotype_field("Phenotype");
+			auto const cell_id_field("Cell ID");
+			auto const cell_x_field("Cell X Position");
+			auto const cell_y_field("Cell Y Position");
 
 			boost::filesystem::ifstream stream(path);
 			std::map<std::string, std::size_t> header;
@@ -80,9 +80,9 @@ void load_inform_samples(boost::filesystem::path const& directory, categories_ty
 		}
 		else if(boost::iends_with(path.string(), "_cell_seg_data_summary.txt"))
 		{
-			char const* sample_field("Sample Name");
-			char const* category_field("Tissue Category");
-			char const* area_field("Tissue Category Area (pixels)");
+			auto const sample_field("Sample Name");
+			auto const category_field("Tissue Category");
+			auto const area_field("Tissue Category Area (pixels)");
 
 			boost::filesystem::ifstream stream(path);
 			std::map<std::string, std::size_t> header;
