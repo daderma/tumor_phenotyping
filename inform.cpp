@@ -14,7 +14,7 @@
 double const distance_threshold_percentage(0.15);	// Maximum cell distance as percentage of min(width, height) of image
 
 
-void load_inform_samples(boost::filesystem::path const& directory, categories_type& categories)
+void load_inform_samples(boost::filesystem::path const& directory, categories_type& categories, filters_type const& filters)
 {
 	boost::filesystem::directory_iterator end;
 	for(boost::filesystem::directory_iterator iter(directory); iter != end; ++ iter)
@@ -30,8 +30,11 @@ void load_inform_samples(boost::filesystem::path const& directory, categories_ty
 			auto const cell_y_field("Cell Y Position");
 
 			boost::filesystem::ifstream stream(path);
-			std::map<std::string, std::size_t> header;
+			header_type header;
 			std::string row;
+			std::size_t read(0);
+			std::size_t discarded(0);
+			std::size_t filtered(0);
 			while(std::getline(stream, row))
 			{
 				std::vector<std::string> columns;
@@ -50,7 +53,16 @@ void load_inform_samples(boost::filesystem::path const& directory, categories_ty
 						&& header.count(cell_x_field) && header.count(cell_y_field)
 						)
 					{
-						std::cout << "Loading " << path << std::endl;
+						std::cout << "Loading " << path << ": ";
+
+						// Check filtered columns exist in header
+						for(auto const& filter: filters)
+						{
+							if(header.count(filter.first) == 0)
+							{
+								BOOST_THROW_EXCEPTION(load_exception() << load_detail_type("filtered column is missing: " + filter.first));
+							}
+						}
 						continue;
 					}
 					else
@@ -72,11 +84,37 @@ void load_inform_samples(boost::filesystem::path const& directory, categories_ty
 				cell->id = boost::lexical_cast<std::int64_t>(columns[header[cell_id_field]]);
 				cell->x = boost::lexical_cast<std::int64_t>(columns[header[cell_x_field]]);
 				cell->y = boost::lexical_cast<std::int64_t>(columns[header[cell_y_field]]);
-				if(!phenotype.empty())
+
+				bool matched(false);
+				for(auto const& filter: filters)
+				{
+					try
+					{
+						matched |= boost::lexical_cast<double>(columns[header[filter.first]]) < filter.second;
+					}
+
+					catch(boost::bad_lexical_cast const &)
+					{
+						matched = true;
+					}
+				}
+
+				if(phenotype.empty())
+				{
+					++ discarded;
+				}
+				else if(matched)
+				{
+					++ filtered;
+				}
+				else
 				{
 					categories[category][sample].phenotypes[phenotype].push_back(cell);
 				}
+				++ read;
 			}
+
+			std::cout << read << " rows, " << discarded << " discarded, " << filtered << " filtered" <<std::endl;
 		}
 		else if(boost::iends_with(path.string(), "_cell_seg_data_summary.txt"))
 		{
