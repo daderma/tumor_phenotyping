@@ -74,6 +74,12 @@ int main(int argc, char* argv[])
 {
 	try
 	{
+		std::cout << "| tumor_phenotyping built " << __DATE__ << " " << __TIME__ << std::endl;
+		std::cout << "| Latest version available at https://github.com/daderma/tumor_phenotyping" << std::endl;
+		std::cout << "+-------------------------------------------------------------------------" << std::endl;
+		
+		std::cout << std::endl;
+
 		std::string interest;	// Phenotype of interest
 		if(argc > 1)
 		{
