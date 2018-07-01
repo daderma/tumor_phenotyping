@@ -145,10 +145,11 @@ void save_inform_sample_nearest(boost::filesystem::path const& directory, catego
 				continue;
 			}
 
-			auto const destination(directory / category.first / create_filename(sample.first, "_nearest_" + phenotype.first + ".txt"));
+			auto const destination(directory / category.first / create_filename(sample.first, "_nearest_" + phenotype.first + ".csv"));
 			std::cout << "Saving " << destination << std::endl;
 			boost::filesystem::ofstream stream(destination, std::ios::trunc);
 
+			stream << "sep=\t" << std::endl;
 			stream << "Sample Name\tCell ID\tCell X Position\tCell Y Position";
 			for(auto const& candidate_phenotype: sample.second.phenotypes)
 			{
@@ -343,10 +344,11 @@ void save_inform_phenotype_nearest(boost::filesystem::path const& directory, cat
 			continue;
 		}
 
-		auto const destination(directory / category.first / ("phenotype_nearest_" + phenotype + ".txt"));
+		auto const destination(directory / category.first / ("phenotype_nearest_" + phenotype + ".csv"));
 		std::cout << "Saving " << destination << std::endl;
 		boost::filesystem::ofstream stream(destination, std::ios::trunc);
 
+		stream << "sep=\t" << std::endl;
 		stream << "Sample Name\tCell ID\tCell X Position\tCell Y Position";
 		for(auto const& candidate_phenotype: phenotypes)
 		{
@@ -404,10 +406,6 @@ void save_inform_phenotype_nearest(boost::filesystem::path const& directory, cat
 
 void save_inform_phenotype_summary(boost::filesystem::path const& directory, categories_type const& categories, std::string const& interest)
 {
-	auto const destination(directory / "phenotype_summary.txt");
-	std::cout << "Saving " << destination << std::endl;
-	boost::filesystem::ofstream stream(destination, std::ios::trunc);
-	
 	std::set<std::string> phenotypes;
 	for(auto const& category: categories)
 	{
@@ -420,6 +418,11 @@ void save_inform_phenotype_summary(boost::filesystem::path const& directory, cat
 		}
 	}
 
+	auto const destination(directory / "phenotype_summary.csv");
+	std::cout << "Saving " << destination << std::endl;
+	boost::filesystem::ofstream stream(destination, std::ios::trunc);
+
+	stream << "sep=\t" << std::endl;
 	stream << "Sample Name\tTissue Category";
 	for(auto const& phenotype: phenotypes)
 	{
