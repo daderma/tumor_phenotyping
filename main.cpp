@@ -5,7 +5,7 @@
 #include <set>
 
 
-void select_phenotype_of_interest(categories_type const& categories, std::string& phenotype)
+void select_phenotype_of_interest(categories_type const& categories, std::string& interest)
 {
 	std::set<std::string> phenotypes;
 	for(auto const& category: categories)
@@ -19,7 +19,7 @@ void select_phenotype_of_interest(categories_type const& categories, std::string
 		}
 	}
 
-	while(true)
+	while(phenotypes.count(interest) == 0)
 	{
 		std::cout << "Please select your phenotype of interest: " << std::endl;
 		for(auto const& phenotype: phenotypes)
@@ -27,17 +27,15 @@ void select_phenotype_of_interest(categories_type const& categories, std::string
 			std::cout << phenotype << std::endl;
 		}
 		std::cout << "> ";
-		std::getline(std::cin, phenotype);
-		if(phenotypes.count(phenotype))
-		{
-			std::cout << std::endl;
-			return;
-		}
+		std::getline(std::cin, interest);
 	}
+
+	std::cout << std::endl;
+	return;
 }
 
 
-void try_directory(boost::filesystem::path const& directory)
+void try_directory(boost::filesystem::path const& directory, std::string& interest)
 {
 	if(boost::filesystem::is_directory(directory))
 	{
@@ -48,12 +46,11 @@ void try_directory(boost::filesystem::path const& directory)
 			boost::filesystem::directory_iterator end;
 			for(boost::filesystem::directory_iterator iter(directory); iter != end; ++ iter)
 			{
-				try_directory(iter->path());
+				try_directory(iter->path(), interest);
 			}
 		}
 		else
 		{
-			std::string interest;
 			select_phenotype_of_interest(categories, interest);
 			for(auto const& category: categories)
 			{
@@ -77,11 +74,12 @@ int main(int argc, char* argv[])
 {
 	try
 	{
+		std::string interest;	// Phenotype of interest
 		if(argc > 1)
 		{
 			for(int i(1); i < argc; ++ i)
 			{
-				try_directory(argv[i]);
+				try_directory(argv[i], interest);
 			}
 		}
 		else
@@ -91,7 +89,7 @@ int main(int argc, char* argv[])
 			std::cout << "You can pass the directories you wish to process on the command line. If you provide a directory" << std::endl;
 			std::cout << "containing sub-directories (i.e. \"samples\" above), the sub-directories will be processed as well." << std::endl << std::endl;
 			std::cout << "For now you can manually select a directory to process..." << std::endl;
-			try_directory(windows::select_directory());
+			try_directory(windows::select_directory(), interest);
 		}
 		return 0;
 	}
